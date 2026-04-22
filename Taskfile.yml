@@ -1,0 +1,53 @@
+version: '3'
+
+vars:
+  MVNW: '{{if eq OS "windows"}}cmd /c mvnw.cmd{{else}}./mvnw{{end}}'
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - cmd: task --list
+    silent: true
+
+  demo:
+    desc: Run both backends and the frontend client in development mode
+    deps:
+      - node-a
+      - node-b
+      - client
+
+  node-a:
+    desc: Start Node A backend on port 8080 (default profile)
+    cmds:
+      - '{{.MVNW}} spring-boot:run'
+
+  node-b:
+    desc: Start Node B backend on port 8081 (node-b profile)
+    cmds:
+      - '{{.MVNW}} spring-boot:run -Dspring-boot.run.profiles=node-b'
+
+  client:
+    desc: Start the Vite dev server on port 5173
+    dir: client
+    cmds:
+      - task: client-install
+      - cmd: npm run dev -- --host
+
+  client-build:
+    desc: Build the frontend into src/main/resources/static
+    dir: client
+    cmds:
+      - task: client-install
+      - cmd: npm run build
+
+  client-install:
+    desc: Install frontend dependencies
+    dir: client
+    cmds:
+      - cmd: npm install
+
+  valkey:
+    desc: Start Valkey via Docker Compose
+    cmds:
+      - docker compose up -d
