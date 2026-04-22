@@ -26,8 +26,7 @@ public class RedisDistributedEventBus implements DistributedEventBus, MessageLis
 
 	private final RemoteEventCodec codec;
 
-	public RedisDistributedEventBus(RedisTemplate<String, byte[]> redisTemplate,
-			RemoteEventCodec codec) {
+	public RedisDistributedEventBus(RedisTemplate<String, byte[]> redisTemplate, RemoteEventCodec codec) {
 		this.redisTemplate = redisTemplate;
 		this.codec = codec;
 	}

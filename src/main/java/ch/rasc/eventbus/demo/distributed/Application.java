@@ -34,8 +34,7 @@ public class Application {
 			RedisDistributedEventBus distributedEventBus) {
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(factory);
-		container.addMessageListener(distributedEventBus,
-				new ChannelTopic(RedisDistributedEventBus.CHANNEL));
+		container.addMessageListener(distributedEventBus, new ChannelTopic(RedisDistributedEventBus.CHANNEL));
 		return container;
 	}
 
