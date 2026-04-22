@@ -12,7 +12,7 @@
 
   <groupId>ch.rasc</groupId>
   <artifactId>sse-eventbus-demo-distributed</artifactId>
-  <version>1.0.0</version>
+  <version>3.2.0</version>
   <packaging>jar</packaging>
   <name>sse-eventbus-demo-distributed</name>
   <description>Distributed demo for sse-eventbus library using Valkey</description>
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>ch.rasc</groupId>
       <artifactId>sse-eventbus</artifactId>
-      <version>3.1.1-SNAPSHOT</version>
+      <version>3.2.0</version>
     </dependency>
   </dependencies>
 
