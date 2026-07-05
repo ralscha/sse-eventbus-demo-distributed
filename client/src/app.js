@@ -3,13 +3,11 @@ class NodePanel {
      * @param {string} id         - 'a' or 'b'
      * @param {string} label      - 'Node A' or 'Node B'
      * @param {string} prefix     - '/node-a' or '/node-b'
-     * @param {string} colorClass - 'from-a' or 'from-b'
      */
-    constructor(id, label, prefix, colorClass) {
+    constructor(id, label, prefix) {
         this.id = id;
         this.label = label;
         this.prefix = prefix;
-        this.colorClass = colorClass;
         this.clientId = crypto.randomUUID();
         this.eventSource = null;
 
@@ -138,8 +136,8 @@ function escapeHtml(str) {
 
 export default class App {
     start() {
-        const nodeA = new NodePanel('a', 'Node A', '/node-a', 'from-a');
-        const nodeB = new NodePanel('b', 'Node B', '/node-b', 'from-b');
+        const nodeA = new NodePanel('a', 'Node A', '/node-a');
+        const nodeB = new NodePanel('b', 'Node B', '/node-b');
         nodeA.connect();
         nodeB.connect();
     }
