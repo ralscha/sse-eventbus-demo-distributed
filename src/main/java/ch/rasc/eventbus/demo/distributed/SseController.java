@@ -1,15 +1,18 @@
 package ch.rasc.eventbus.demo.distributed;
 
-import java.io.IOException;
+import java.io.Serial;
+import java.io.Serializable;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import ch.rasc.sse.eventbus.SseEvent;
@@ -35,25 +38,25 @@ public class SseController {
 	@GetMapping("/register/{clientId}")
 	public SseEmitter register(@PathVariable String clientId, HttpServletResponse response) {
 		response.setHeader("Cache-Control", "no-store");
-		SseEmitter emitter = this.eventBus.createSseEmitter(clientId, 0L, "chat");
-		try {
-			emitter.send(SseEmitter.event().comment("connected"));
-		}
-		catch (IOException ex) {
-			emitter.completeWithError(ex);
-		}
-		return emitter;
+		response.setHeader("X-Accel-Buffering", "no");
+		return this.eventBus.createSseEmitter(clientId, 0L, "chat");
 	}
 
 	@PostMapping("/send")
 	@ResponseBody
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void send(@RequestBody String text) {
-		String payload = "{\"text\":" + jsonString(text) + ",\"node\":" + jsonString(this.nodeName) + "}";
-		this.eventPublisher.publishEvent(SseEvent.of("chat", payload));
+		if (text == null || text.isBlank()) {
+			return;
+		}
+		this.eventPublisher.publishEvent(SseEvent.of("chat", new ChatMessage(text.strip(), this.nodeName)));
 	}
 
-	private static String jsonString(String value) {
-		return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+	public record ChatMessage(String text, String node) implements Serializable {
+
+		@Serial
+		private static final long serialVersionUID = 1L;
+
 	}
 
 }

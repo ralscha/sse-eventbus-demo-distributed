@@ -18,6 +18,7 @@ tasks:
   demo:
     desc: Run both backends and the frontend client in development mode
     deps:
+      - valkey
       - node-a
       - node-b
       - client
@@ -45,6 +46,13 @@ tasks:
     cmds:
       - task: client-install
       - cmd: npm run build
+
+  package:
+    desc: Build an executable jar containing the frontend
+    deps:
+      - client-build
+    cmds:
+      - '{{.MVNW}} -B -ntp clean package'
 
   client-install:
     desc: Install frontend dependencies

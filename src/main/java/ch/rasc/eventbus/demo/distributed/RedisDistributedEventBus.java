@@ -4,6 +4,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,6 +17,8 @@ import ch.rasc.sse.eventbus.distributed.RemoteSseEventEnvelope;
 
 @Component
 public class RedisDistributedEventBus implements DistributedEventBus, MessageListener {
+
+	private static final Log logger = LogFactory.getLog(RedisDistributedEventBus.class);
 
 	static final String CHANNEL = "sse-eventbus";
 
@@ -63,7 +67,7 @@ public class RedisDistributedEventBus implements DistributedEventBus, MessageLis
 			}
 		}
 		catch (Exception e) {
-			throw new RuntimeException("Failed to deserialize event from Redis", e);
+			logger.error("Ignoring invalid event received from Redis", e);
 		}
 	}
 

@@ -46,6 +46,7 @@ class NodePanel {
     }
 
     connect() {
+        this.eventSource?.close();
         const url = `${this.prefix}/register/${this.clientId}`;
         this.eventSource = new EventSource(url);
 
@@ -53,12 +54,26 @@ class NodePanel {
         this.eventSource.addEventListener('error', () => this._setDisconnected());
 
         this.eventSource.addEventListener('chat', (e) => {
-            this._setConnected();
-            const data = JSON.parse(e.data);
-            this._appendMessage(data.text, data.node);
+            try {
+                const data = JSON.parse(e.data);
+                if (typeof data.text !== 'string' || typeof data.node !== 'string') {
+                    throw new TypeError('Invalid chat event');
+                }
+                this._setConnected();
+                this._appendMessage(data.text, data.node);
+            }
+            catch (error) {
+                console.error('Ignoring invalid chat event', error);
+            }
         });
 
         this._syncConnectionState();
+    }
+
+    disconnect() {
+        this.eventSource?.close();
+        this.eventSource = null;
+        this._setDisconnected();
     }
 
     _syncConnectionState(attempt = 0) {
@@ -106,23 +121,37 @@ class NodePanel {
         const msg = document.createElement('div');
         msg.className = `message ${fromClass}`;
         msg.innerHTML = `
-            <div class="message-meta">${fromNode}${remoteTag}</div>
+            <div class="message-meta">${escapeHtml(fromNode)}${remoteTag}</div>
             <div class="message-text">${escapeHtml(text)}</div>
         `;
         this._feed.appendChild(msg);
         this._feed.scrollTop = this._feed.scrollHeight;
     }
 
-    _send() {
+    async _send() {
         const text = this._input.value.trim();
         if (!text) return;
         this._input.value = '';
+        this._sendBtn.disabled = true;
 
-        fetch(`${this.prefix}/send`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: text
-        });
+        try {
+            const response = await fetch(`${this.prefix}/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain; charset=UTF-8' },
+                body: text
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        }
+        catch (error) {
+            this._input.value = text;
+            this._statusLabel.textContent = 'send failed';
+            console.error('Unable to send message', error);
+        }
+        finally {
+            this._sendBtn.disabled = this.eventSource?.readyState !== EventSource.OPEN;
+        }
     }
 }
 
@@ -136,9 +165,15 @@ function escapeHtml(str) {
 
 export default class App {
     start() {
-        const nodeA = new NodePanel('a', 'Node A', '/node-a');
-        const nodeB = new NodePanel('b', 'Node B', '/node-b');
-        nodeA.connect();
-        nodeB.connect();
+        this.nodeA = new NodePanel('a', 'Node A', '/node-a');
+        this.nodeB = new NodePanel('b', 'Node B', '/node-b');
+        this.nodeA.connect();
+        this.nodeB.connect();
+        window.addEventListener('pagehide', () => this.stop(), { once: true });
+    }
+
+    stop() {
+        this.nodeA?.disconnect();
+        this.nodeB?.disconnect();
     }
 }

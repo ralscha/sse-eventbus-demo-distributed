@@ -26,3 +26,4 @@ nbdist/
 
 client/node_modules/
 client/bun.lock
+src/main/resources/static/
